@@ -187,59 +187,59 @@ def channels_table(channel_name_s):
         print("Channels table already created")
 
     #fetching all datas
-    # query_1= "SELECT * FROM channels"
-    # cursor.execute(query_1)
-    # table= cursor.fetchall()
-    # mydb.commit()
+    query_1= "SELECT * FROM channels"
+    cursor.execute(query_1)
+    table= cursor.fetchall()
+    mydb.commit()
 
-    # chann_list= []
-    # chann_list2= []
-    # df_all_channels= pd.DataFrame(table)
+    chann_list= []
+    chann_list2= []
+    df_all_channels= pd.DataFrame(table)
 
     # chann_list.append(df_all_channels[0])
     # for i in chann_list[0]:
     #     chann_list2.append(i)
     
 
-    # if channel_name_s in chann_list2:
-    #     isExists= f"Your Provided Channel {channel_name_s} is Already exists"        
-    #     return isExists
+    if channel_name_s in chann_list2:
+        isExists= f"Your Provided Channel {channel_name_s} is Already exists"        
+        return isExists
     
-    # else:
+    else:
 
-    single_channel_details= []
-    coll1=db["channel_details"]
-    for ch_data in coll1.find({"channel_information.Channel_Name":channel_name_s},{"_id":0}):
-        single_channel_details.append(ch_data["channel_information"])
+        single_channel_details= []
+        coll1=db["channel_details"]
+        for ch_data in coll1.find({"channel_information.Channel_Name":channel_name_s},{"_id":0}):
+            single_channel_details.append(ch_data["channel_information"])
 
-    df_single_channel= pd.DataFrame(single_channel_details)
+        df_single_channel= pd.DataFrame(single_channel_details)
 
 
 
-    for index,row in df_single_channel.iterrows():
-        insert_query='''insert into channels(Channel_Name ,
-                                            Channel_Id,
-                                            Subscribers,
-                                            Views,
-                                            Total_Videos,
-                                            Channel_Description,
-                                            Playlist_Id)
-                                            
-                                            values(%s,%s,%s,%s,%s,%s,%s)'''
-        values=(row['Channel_Name'],
-                row['Channel_Id'],
-                row['Subscribers'],
-                row['Views'],
-                row['Total_Videos'],
-                row['Channel_Description'],
-                row['Playlist_Id'])
+        for index,row in df_single_channel.iterrows():
+            insert_query='''insert into channels(Channel_Name ,
+                                                Channel_Id,
+                                                Subscribers,
+                                                Views,
+                                                Total_Videos,
+                                                Channel_Description,
+                                                Playlist_Id)
+                                                
+                                                values(%s,%s,%s,%s,%s,%s,%s)'''
+            values=(row['Channel_Name'],
+                    row['Channel_Id'],
+                    row['Subscribers'],
+                    row['Views'],
+                    row['Total_Videos'],
+                    row['Channel_Description'],
+                    row['Playlist_Id'])
 
-        try:
-            cursor.execute(insert_query,values)
-            mydb.commit()
+            try:
+                cursor.execute(insert_query,values)
+                mydb.commit()
 
-        except:
-            print("Channel values are already inserted")
+            except:
+                print("Channel values are already inserted")
 
 def playlist_table(channel_name_s):
     mydb=psycopg2.connect(host="localhost",
@@ -305,7 +305,7 @@ def videos_table(channel_name_s):
                                                     Tags text,
                                                     Thumbnail varchar(200),
                                                     Description text,
-                                                    Published_Date timestamp,
+                                                    PublishedDate timestamp,
                                                     Duration interval,
                                                     Views bigint,
                                                     Likes bigint,
@@ -325,7 +325,7 @@ def videos_table(channel_name_s):
         single_channel_details.append(ch_data["video_information"])
 
     df_single_channel= pd.DataFrame(single_channel_details[0])
-
+    print(df_single_channel)
 
 
     for index,row in df_single_channel.iterrows():
@@ -336,7 +336,7 @@ def videos_table(channel_name_s):
                                                     Tags,
                                                     Thumbnail,
                                                     Description,
-                                                    Published_Date,
+                                                    PublishedDate,
                                                     Duration,
                                                     Views,
                                                     Likes,
@@ -356,7 +356,7 @@ def videos_table(channel_name_s):
                     row['Tags'],
                     row['Thumbnail'],
                     row['Description'],
-                    row['Published_Date'],
+                    row['PublishedDate'],
                     row['Duration'],
                     row['Views'],
                     row['Likes'],

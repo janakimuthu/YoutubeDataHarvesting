@@ -75,8 +75,8 @@ def get_video_info(video_ids):
                         Video_Id = item["id"],
                         Title = item["snippet"]["title"],
                         Tags = item["snippet"].get("tags"),
-                        Thumbnail = item["snippet"]["thumbnails"],
-                        Description = item["snippet"]["description"],
+                        Thumbnail=item['snippet']['thumbnails']['default']['url'],
+                        Description = item["snippet"].get("description"),
                         PublishedDate = item["snippet"]["publishedAt"],
                         Duration = item["contentDetails"]["duration"],
                         Views = item["statistics"].get("viewCount"),
@@ -91,15 +91,17 @@ def get_video_info(video_ids):
     return video_data
 
 # FUNCTION TO GET COMMENT DETAILS
-def get_comments_details(v_id):
+def get_comments_details(v_ids):
     comment_data = []
     try:
-        next_page_token = None
-        while True:
-            response = youtube.commentThreads().list(part="snippet,replies",
-                                                    videoId=v_id,
-                                                    maxResults=100,
-                                                    pageToken=next_page_token).execute()
+       for video_id in v_ids:
+            request=youtube.commentThreads().list(
+                part="snippet,replies",
+                videoId=video_id,
+                maxResults=50
+            )
+            response=request.execute()
+           
             for cmt in response['items']:
                 data = dict(Comment_Id = cmt['id'],
                             Video_Id = cmt['snippet']['videoId'],
@@ -110,9 +112,7 @@ def get_comments_details(v_id):
                             Reply_Count = cmt['snippet']['totalReplyCount']
                            )
                 comment_data.append(data)
-            next_page_token = response.get('nextPageToken')
-            if next_page_token is None:
-                break
+           
     except:
         pass
     return comment_data
@@ -196,9 +196,9 @@ def channels_table(channel_name_s):
     chann_list2= []
     df_all_channels= pd.DataFrame(table)
 
-    # chann_list.append(df_all_channels[0])
-    # for i in chann_list[0]:
-    #     chann_list2.append(i)
+    chann_list.append(df_all_channels[0])
+    for i in chann_list[0]:
+        chann_list2.append(i)
     
 
     if channel_name_s in chann_list2:
@@ -325,50 +325,46 @@ def videos_table(channel_name_s):
         single_channel_details.append(ch_data["video_information"])
 
     df_single_channel= pd.DataFrame(single_channel_details[0])
-    print(df_single_channel)
-
-
+   
     for index,row in df_single_channel.iterrows():
-            insert_query='''insert into videos(Channel_Name,
-                                                    Channel_Id,
-                                                    Video_Id,
-                                                    Title,
-                                                    Tags,
-                                                    Thumbnail,
-                                                    Description,
-                                                    PublishedDate,
-                                                    Duration,
-                                                    Views,
-                                                    Likes,
-                                                    Comments,
-                                                    Favorite_Count,
-                                                    Definition,
-                                                    Caption_Status
-                                                )
-                                                
-                                                values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-        
+        insert_query='''insert into videos(Channel_Name,
+                                                Channel_Id,
+                                                Video_Id,
+                                                Title,                                         
+                                                Tags,
+                                                Thumbnail,
+                                                Description,
+                                                PublishedDate,
+                                                Duration,
+                                                Views,
+                                                Likes,
+                                                Comments,
+                                                Favorite_Count,
+                                                Definition,
+                                                Caption_Status
+                                            )
+                                            
+                                            values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+    
 
-            values=(row['Channel_Name'],
-                    row['Channel_Id'],
-                    row['Video_Id'],
-                    row['Title'],
-                    row['Tags'],
-                    row['Thumbnail'],
-                    row['Description'],
-                    row['PublishedDate'],
-                    row['Duration'],
-                    row['Views'],
-                    row['Likes'],
-                    row['Comments'],
-                    row['Favorite_Count'],
-                    row['Definition'],
-                    row['Caption_Status']
-                    )
-
-            
-            cursor.execute(insert_query,values)
-            mydb.commit()
+        values=(row['Channel_Name'],
+                row['Channel_Id'],
+                row['Video_Id'],
+                row['Title'],              
+                row['Tags'],
+                row['Thumbnail'],
+                row['Description'],
+                row['PublishedDate'],
+                row['Duration'],
+                row['Views'],
+                row['Likes'],
+                row['Comments'],
+                row['Favorite_Count'],
+                row['Definition'],
+                row['Caption_Status']
+                )       
+        cursor.execute(insert_query,values)
+        mydb.commit()
 
 
 def comments_table(channel_name_s):
@@ -476,14 +472,15 @@ def show_comments_table():
 
 #streamlit part
 
-with st.sidebar:
-    st.title(":blue[YOUTUBE DATA HAVERSTING AND WAREHOUSING]")
+with st.sidebar:   
     st.header("Skill Take Away")
     st.caption("Python Scripting")
     st.caption("Data Collection")
     st.caption("MongoDB")
     st.caption("API Integration")
     st.caption("Data Management using MongoDB and SQL")
+
+st.title(":blue[YOUTUBE DATA HAVERSTING AND WAREHOUSING]")
 
 channel_id=st.text_input("Enter the channel ID")
 
@@ -501,7 +498,6 @@ if st.button("collect and store data"):
         insert=channel_details(channel_id)
         st.success(insert)
 
-        #New code
         
 all_channels= []
 coll1=db["channel_details"]
@@ -609,12 +605,12 @@ elif question=="7. views of each channel":
     st.write(df7)
 
 elif question=="8. videos published in the year of 2022":
-    query8='''select title as video_title,published_date as videorelease,channel_name as channelname from videos
-                where extract(year from published_date)=2022'''
+    query8='''select title as video_title,publisheddate as videorelease,channel_name as channelname from videos
+                where extract(year from publisheddate)=2022'''
     cursor.execute(query8)
     mydb.commit()
     t8=cursor.fetchall()
-    df8=pd.DataFrame(t8,columns=["videotitle","published_date","channelname"])
+    df8=pd.DataFrame(t8,columns=["videotitle","publisheddate","channelname"])
     st.write(df8)
 
 elif question=="9. average duration of all videos in each channel":
